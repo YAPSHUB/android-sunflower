@@ -16,12 +16,17 @@
 
 package com.google.samples.apps.sunflower.utilities
 
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.support.v4.app.FragmentActivity
 import com.google.samples.apps.sunflower.data.AppDatabase
 import com.google.samples.apps.sunflower.data.GardenPlantingRepository
 import com.google.samples.apps.sunflower.data.PlantRepository
+import com.google.samples.apps.sunflower.viewmodels.GardenPlantingListViewModel
 import com.google.samples.apps.sunflower.viewmodels.GardenPlantingListViewModelFactory
+import com.google.samples.apps.sunflower.viewmodels.PlantDetailViewModel
 import com.google.samples.apps.sunflower.viewmodels.PlantDetailViewModelFactory
+import com.google.samples.apps.sunflower.viewmodels.PlantListViewModel
 import com.google.samples.apps.sunflower.viewmodels.PlantListViewModelFactory
 
 /**
@@ -38,23 +43,22 @@ object InjectorUtils {
                 AppDatabase.getInstance(context).gardenPlantingDao())
     }
 
-    fun provideGardenPlantingListViewModelFactory(
-        context: Context
-    ): GardenPlantingListViewModelFactory {
-        val repository = getGardenPlantingRepository(context)
-        return GardenPlantingListViewModelFactory(repository)
-    }
+    fun provideGardenPlantingListViewModel(activity: FragmentActivity) =
+        GardenPlantingListViewModelFactory(getGardenPlantingRepository(activity.applicationContext)).run {
+            ViewModelProviders.of(activity, this).get(GardenPlantingListViewModel::class.java)
+        }
 
-    fun providePlantListViewModelFactory(context: Context): PlantListViewModelFactory {
-        val repository = getPlantRepository(context)
-        return PlantListViewModelFactory(repository)
-    }
+    fun providePlantListViewModel(activity: FragmentActivity) =
+        PlantListViewModelFactory(getPlantRepository(activity.applicationContext)).run {
+            ViewModelProviders.of(activity, this).get(PlantListViewModel::class.java)
+        }
 
-    fun providePlantDetailViewModelFactory(
-        context: Context,
-        plantId: String
-    ): PlantDetailViewModelFactory {
-        return PlantDetailViewModelFactory(getPlantRepository(context),
-                getGardenPlantingRepository(context), plantId)
-    }
+    fun providePlantDetailViewModel(activity: FragmentActivity, plantId: String) =
+        PlantDetailViewModelFactory(
+            getPlantRepository(activity.applicationContext),
+            getGardenPlantingRepository(activity.applicationContext),
+            plantId
+        ).run {
+            ViewModelProviders.of(activity, this).get(PlantDetailViewModel::class.java)
+        }
 }

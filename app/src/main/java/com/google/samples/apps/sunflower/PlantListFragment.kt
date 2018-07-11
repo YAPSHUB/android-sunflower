@@ -17,7 +17,6 @@
 package com.google.samples.apps.sunflower
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.RecyclerView
@@ -41,11 +40,9 @@ class PlantListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_plant_list, container, false)
-        val context = context ?: return view
+        context ?: return view
 
-        val factory = InjectorUtils.providePlantListViewModelFactory(context)
-        viewModel = ViewModelProviders.of(this, factory).get(PlantListViewModel::class.java)
-
+        viewModel = InjectorUtils.providePlantListViewModel(requireActivity())
         val adapter = PlantAdapter()
         view.findViewById<RecyclerView>(R.id.plant_list).adapter = adapter
         subscribeUi(adapter)
