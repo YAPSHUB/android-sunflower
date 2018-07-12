@@ -37,7 +37,7 @@ class PlantListViewModel internal constructor(
     private val plantList = MediatorLiveData<List<Plant>>()
 
     init {
-        growZoneNumber.value = NO_GROW_ZONE
+        growZoneNumber.postValue(NO_GROW_ZONE)
 
         val livePlantList = Transformations.switchMap(growZoneNumber) {
             if (it == NO_GROW_ZONE) {
