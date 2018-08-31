@@ -16,9 +16,13 @@
 
 package com.google.samples.apps.sunflower.viewmodels
 
+import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MediatorLiveData
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
+import android.databinding.ObservableBoolean
 import com.google.samples.apps.sunflower.data.GardenPlantingRepository
 import com.google.samples.apps.sunflower.data.PlantAndGardenPlantings
 
@@ -26,10 +30,28 @@ class GardenPlantingListViewModel internal constructor(
     gardenPlantingRepository: GardenPlantingRepository
 ) : ViewModel() {
 
-    val gardenPlantings = gardenPlantingRepository.getGardenPlantings()
+    private val gardenPlantings = gardenPlantingRepository.getGardenPlantings()
+    private val _plantAndGardenPlantings = MediatorLiveData<List<PlantAndGardenPlantings>>()
+    val plantAndGardenPlantings: LiveData<List<PlantAndGardenPlantings>> = _plantAndGardenPlantings
 
-    val plantAndGardenPlantings: LiveData<List<PlantAndGardenPlantings>> =
+    val hasPlantings = ObservableBoolean(false)
+    val hasPlantAndGardenPlantings = ObservableBoolean(false)
+
+    init {
+        val livePlantAndGardenPlantings =
             Transformations.map(gardenPlantingRepository.getPlantAndGardenPlantings()) {
-                it.filter { it.gardenPlantings.isNotEmpty() }
+                it.filter { plantAndGardenPlantings -> plantAndGardenPlantings.gardenPlantings.isNotEmpty() }
             }
+
+        _plantAndGardenPlantings.addSource(livePlantAndGardenPlantings) { list ->
+            _plantAndGardenPlantings.value = list
+            hasPlantAndGardenPlantings.set(true)
+        }
+    }
+
+    fun checkGardenPlantings(owner: LifecycleOwner) {
+        gardenPlantings.observe(owner, Observer { plantings ->
+            hasPlantings.set(plantings != null && plantings.isNotEmpty())
+        })
+    }
 }
