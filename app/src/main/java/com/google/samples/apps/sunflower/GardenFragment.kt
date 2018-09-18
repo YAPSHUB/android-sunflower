@@ -30,27 +30,30 @@ import com.google.samples.apps.sunflower.viewmodels.GardenPlantingListViewModel
 
 class GardenFragment : Fragment() {
 
+    private lateinit var viewModel: GardenPlantingListViewModel
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val binding = FragmentGardenBinding.inflate(inflater, container, false)
+        context ?: return binding.root
+
+        val factory = InjectorUtils.provideGardenPlantingListViewModelFactory(requireContext())
+        viewModel = ViewModelProviders.of(this, factory)
+            .get(GardenPlantingListViewModel::class.java)
+        binding.viewModel = viewModel
+
         val adapter = GardenPlantingAdapter(binding.root.context)
         binding.gardenList.adapter = adapter
-        subscribeUi(adapter, binding)
+        subscribeUi(adapter)
+
         return binding.root
     }
 
-    private fun subscribeUi(adapter: GardenPlantingAdapter, binding: FragmentGardenBinding) {
-        val factory = InjectorUtils.provideGardenPlantingListViewModelFactory(requireContext())
-        val viewModel = ViewModelProviders.of(this, factory)
-                .get(GardenPlantingListViewModel::class.java)
-
-        viewModel.gardenPlantings.observe(viewLifecycleOwner, Observer { plantings ->
-            binding.hasPlantings = (plantings != null && plantings.isNotEmpty())
-        })
-
+    private fun subscribeUi(adapter: GardenPlantingAdapter) {
+        viewModel.checkGardenPlantings(viewLifecycleOwner)
         viewModel.plantAndGardenPlantings.observe(viewLifecycleOwner, Observer { result ->
             if (result != null && result.isNotEmpty())
                 adapter.submitList(result)
